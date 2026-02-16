@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: saruser
+      POSTGRES_DB: sardb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  rq-worker:
+    image: python:3.10-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -c "pip install -r backend/requirements.txt && rq worker --url ${REDIS_URL:-redis://redis:6379/0}"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+volumes:
+  pgdata:
+    driver: local

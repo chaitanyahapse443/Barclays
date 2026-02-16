@@ -1,0 +1,11 @@
+{
+  "case_id": "CASE-001",
+  "customer_id": "CUST-123",
+  "customer_name": "John Doe",
+  "alerts": [
+    {"alert_id": "A1", "reason": "many inflows", "timestamp": "2026-02-01T10:00:00Z"}
+  ],
+  "transactions": [
+    {"tx_id": "T1", "amount": 5000000, "currency": "INR", "timestamp": "2026-02-01T09:00:00Z", "from_account": "ACC-1", "to_account": "ACC-X"}
+  ]
+}

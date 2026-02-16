@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Start Postgres and Redis services
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-server postgresql
+          # start redis
+          sudo service redis-server start
+          sudo service postgresql start
+      - name: Install backend deps
+        working-directory: backend
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Apply migrations
+        working-directory: backend
+        run: |
+          . .venv/bin/activate
+          python ../tools/migrate.py
+      - name: Run tests
+        working-directory: backend
+        run: |
+          . .venv/bin/activate
+          pytest -q

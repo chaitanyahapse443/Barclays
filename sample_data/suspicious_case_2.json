@@ -1,0 +1,9 @@
+{
+  "case_id": "CASE-002",
+  "customer_id": "CUST-789",
+  "customer_name": "Acme Corp",
+  "alerts": [
+    {"alert_id": "A2", "reason": "large outbound", "timestamp": "2026-01-15T12:00:00Z"}
+  ],
+  "transactions": []
+}
