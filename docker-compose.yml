@@ -14,16 +14,17 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-  rq-worker:
-    image: python:3.10-slim
-    working_dir: /app
-    volumes:
-      - ./:/app
-    command: bash -c "pip install -r backend/requirements.txt && rq worker --url ${REDIS_URL:-redis://redis:6379/0}"
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      - redis
+  # rq-worker:
+#   image: python:3.10-slim
+#   working_dir: /app
+#   volumes:
+#     - ./:/app
+#   command: bash -c "pip install -r backend/requirements.txt && rq worker --url ${REDIS_URL:-redis://redis:6379/0}"
+#   environment:
+#     - REDIS_URL=redis://redis:6379/0
+#   depends_on:
+#     - redis
+
 
 volumes:
   pgdata:

@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAR AI Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   ROOT VARIABLES
+══════════════════════════════════════════ */
+:root {
+  --bg:       #06071a;
+  --card:     rgba(255,255,255,0.045);
+  --card-h:   rgba(255,255,255,0.075);
+  --border:   rgba(255,255,255,0.08);
+  --border-b: rgba(255,255,255,0.16);
+  --g1: #5b2fff;
+  --g2: #a855f7;
+  --g3: #ec4899;
+  --g4: #22d3ee;
+  --tp:  #eeeeff;
+  --ts:  rgba(238,238,255,0.58);
+  --tm:  rgba(238,238,255,0.32);
+  --ok:  #34d399;
+  --warn:#fbbf24;
+  --err: #f87171;
+  --info:#22d3ee;
+  --font:'Sora',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--tp);
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.6;
+}
+
+/* Gradient mesh background — mirrors .stApp gradient */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 90% 65% at 15%  5%, rgba(91,47,255,.20) 0%,transparent 55%),
+    radial-gradient(ellipse 65% 55% at 85% 15%,rgba(168,85,247,.15) 0%,transparent 50%),
+    radial-gradient(ellipse 75% 60% at 50% 95%,rgba(236,72,153,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 45% at 92% 72%,rgba(34,211,238,.10) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 40% at  5% 80%,rgba(91,47,255,.08) 0%,transparent 50%);
+  pointer-events:none;
+}
+
+body::after{
+  content:'';
+  position:fixed;inset:0;z-index:0;
+  background-image:radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:32px 32px;
+  pointer-events:none;
+}
+
+.shell{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ── Top bar ── */
+.topbar{
+  height:42px;
+  display:flex;align-items:center;justify-content:flex-end;gap:1.2rem;
+  padding:0 2.5rem;
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(18px);
+  background:rgba(6,7,26,.55);
+  font-size:.72rem;color:var(--tm);font-family:var(--mono);
+  position:sticky;top:0;z-index:200;
+}
+.api-pill{
+  display:flex;align-items:center;gap:.4rem;
+  padding:.2rem .75rem;border-radius:100px;
+  font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);color:var(--ok);
+}
+.api-dot{width:5px;height:5px;border-radius:50%;background:var(--ok);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── Hero (mirrors .hero in Streamlit CSS) ── */
+.hero{
+  padding:2.8rem 2.5rem;
+  background:linear-gradient(110deg,#1a2550 0%,#0c1630 55%,#1a1040 100%);
+  border-bottom:1px solid rgba(91,47,255,.25);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 80% at 100% 50%,rgba(91,47,255,.18) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at   0% 50%,rgba(168,85,247,.12) 0%,transparent 55%);
+  pointer-events:none;
+}
+.hero-inner{
+  position:relative;z-index:1;max-width:1260px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.22rem .75rem;border-radius:100px;
+  font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(91,47,255,.2);border:1px solid rgba(91,47,255,.4);color:#c4b5fd;
+  margin-bottom:1rem;
+}
+.hero-title{
+  font-size:2.1rem;font-weight:800;letter-spacing:-.04em;line-height:1.15;
+  background:linear-gradient(120deg,#fff 10%,#c4b5fd 50%,#f0abfc 85%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:.6rem;
+}
+.hero-sub{font-size:.9rem;color:rgba(238,238,255,.55);font-weight:400;max-width:540px}
+.hero-chips{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end}
+.chip{padding:.28rem .85rem;border-radius:100px;font-size:.67rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--border-b);color:var(--ts)}
+.chip.ok  {border-color:rgba(52,211,153,.3);color:var(--ok);background:rgba(52,211,153,.07)}
+.chip.info{border-color:rgba(34,211,238,.3);color:var(--info);background:rgba(34,211,238,.07)}
+.chip.warn{border-color:rgba(251,191,36,.3);color:var(--warn);background:rgba(251,191,36,.07)}
+
+/* ── Navbar (mirrors st.tabs — centered & large) ── */
+.navbar{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.75rem 2.5rem;
+  backdrop-filter:blur(14px);
+  background:rgba(6,7,26,.6);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:42px;z-index:190;
+  flex-wrap:wrap;
+}
+.nav-tab{
+  display:flex;align-items:center;gap:.55rem;
+  padding:.6rem 1.5rem;border-radius:10px;
+  font-family:var(--font);font-size:.9rem;font-weight:600;
+  color:var(--ts);background:transparent;border:1px solid transparent;
+  cursor:pointer;transition:all .22s ease;white-space:nowrap;
+}
+.nav-tab:hover{background:var(--card-h);color:var(--tp);border-color:var(--border)}
+.nav-tab.active{
+  background:linear-gradient(135deg,rgba(91,47,255,.28),rgba(168,85,247,.18));
+  color:#fff;border-color:rgba(91,47,255,.5);
+  box-shadow:0 0 18px rgba(91,47,255,.22);
+}
+.nav-tab .ni{font-size:1rem}
+
+/* ── Main ── */
+main{flex:1;padding:2.5rem;max-width:1260px;margin:0 auto;width:100%}
+.page{display:none;animation:fadeUp .3s ease forwards}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Page heading ── */
+.ph{margin-bottom:2rem}
+.ph-title{
+  font-size:1.75rem;font-weight:800;letter-spacing:-.035em;
+  background:linear-gradient(100deg,#fff 15%,#c4b5fd 55%,#f0abfc 90%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:inline-block;margin-bottom:.3rem;
+}
+.ph-sub{font-size:.82rem;color:var(--ts)}
+
+/* ── Card ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:1.7rem;
+  backdrop-filter:blur(10px);transition:border-color .2s;
+}
+.card:hover{border-color:var(--border-b)}
+.card-lbl{
+  font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tm);margin-bottom:1rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.card-lbl::before{content:'';width:3px;height:13px;border-radius:2px;background:linear-gradient(180deg,var(--g1),var(--g3))}
+
+/* ── Info cells (mirrors st.markdown card × 3 columns) ── */
+.info-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.ic{padding:1.1rem 1.3rem;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.ic-lbl{font-size:.64rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tm);margin-bottom:.35rem}
+.ic-val{font-size:.9rem;font-weight:700;font-family:var(--mono)}
+
+/* ── Form elements ── */
+.field-lbl{display:block;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ts);margin-bottom:.45rem}
+select,input[type=text]{
+  width:100%;padding:.8rem 1rem;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,.04);
+  color:var(--tp);font-family:var(--font);font-size:.86rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+select{
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(238,238,255,.35)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
+}
+select:focus,input[type=text]:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(91,47,255,.15)}
+select option{background:#0e1135}
+
+/* ── Table (mirrors st.dataframe) ── */
+.tbl{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.79rem}
+thead{background:rgba(91,47,255,.1)}
+th{padding:.78rem 1rem;text-align:left;font-size:.65rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tm);border-bottom:1px solid var(--border)}
+td{padding:.78rem 1rem;border-bottom:1px solid rgba(255,255,255,.03);color:var(--ts)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.025);color:var(--tp)}
+.mn{font-family:var(--mono);font-size:.73rem}
+.badge{display:inline-flex;align-items:center;padding:.17rem .6rem;border-radius:100px;font-size:.63rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.bh{background:rgba(248,113,113,.13);color:var(--err)}
+.bm{background:rgba(251,191,36,.13);color:var(--warn)}
+.bl{background:rgba(52,211,153,.11);color:var(--ok)}
+.bp{background:rgba(34,211,238,.11);color:var(--info)}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.7rem 1.4rem;border-radius:10px;
+  font-family:var(--font);font-size:.82rem;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn-p{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 4px 16px rgba(91,47,255,.35)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(91,47,255,.5)}
+.btn-g{background:var(--card);color:var(--ts);border:1px solid var(--border)}
+.btn-g:hover{background:var(--card-h);color:var(--tp);border-color:var(--border-b)}
+.btn-ok{background:linear-gradient(135deg,#059669,#34d399);color:#022c22;box-shadow:0 4px 14px rgba(52,211,153,.25)}
+.btn-ok:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(52,211,153,.4)}
+.btn-row{display:flex;gap:.75rem;margin-top:1.2rem;flex-wrap:wrap}
+
+/* ── Alert boxes ── */
+.alert{display:flex;gap:.75rem;align-items:flex-start;padding:.9rem 1.1rem;border-radius:10px;font-size:.82rem;margin-bottom:1rem}
+.alert .ai{font-size:.95rem;flex-shrink:0;margin-top:.05rem}
+.alert .at{line-height:1.5}
+.alert.warn{background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.24);color:#fde68a}
+.alert.ok  {background:rgba(52,211,153,.09);border:1px solid rgba(52,211,153,.24);color:#6ee7b7}
+.alert.info{background:rgba(34,211,238,.09);border:1px solid rgba(34,211,238,.24);color:#67e8f9}
+.alert.err {background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.24);color:#fca5a5}
+
+/* ── Textarea ── */
+textarea{
+  width:100%;padding:1rem 1.1rem;border-radius:12px;
+  border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--tp);font-family:var(--mono);font-size:.79rem;line-height:1.75;
+  resize:vertical;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+textarea:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(91,47,255,.14)}
+
+/* ── Inner tabs (SAR sub-tabs) ── */
+.itabs{display:flex;gap:.25rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.itab{
+  padding:.65rem 1.2rem;
+  font-family:var(--font);font-size:.79rem;font-weight:600;
+  color:var(--ts);background:transparent;border:none;
+  border-bottom:2px solid transparent;cursor:pointer;
+  transition:all .2s;margin-bottom:-1px;border-radius:6px 6px 0 0;
+}
+.itab:hover{color:var(--tp)}
+.itab.active{color:#fff;border-bottom-color:var(--g2);background:rgba(168,85,247,.1)}
+.ipanel{display:none}
+.ipanel.active{display:block;animation:fadeUp .22s ease}
+
+/* ── Audit timeline ── */
+.tl{display:flex;flex-direction:column}
+.tl-row{display:flex;gap:1.1rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tl-row:last-child{border-bottom:none}
+.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:.35rem;position:relative}
+.tl-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:inherit;opacity:.18}
+.dp{background:var(--g2)}
+.dc{background:var(--info)}
+.dg{background:var(--ok)}
+.do{background:var(--warn)}
+.tl-ts{font-family:var(--mono);font-size:.66rem;color:var(--tm);min-width:130px;margin-top:.18rem}
+.tl-act{font-size:.83rem;font-weight:700}
+.tl-det{font-size:.74rem;color:var(--ts);margin-top:.18rem}
+.tl-usr{display:inline-block;margin-top:.3rem;padding:.12rem .55rem;border-radius:4px;font-size:.67rem;font-family:var(--mono);background:rgba(91,47,255,.15);color:#c4b5fd}
+
+/* ── Progress bar ── */
+.prog{background:rgba(255,255,255,.06);border-radius:100px;height:5px;overflow:hidden;margin:.4rem 0}
+.prog-b{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--g1),var(--g3));transition:width .6s ease}
+
+/* ── Grid helpers ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+
+/* ── Settings ── */
+.cred-block{padding:1rem 1.2rem;border-radius:12px;background:rgba(91,47,255,.08);border:1px solid rgba(91,47,255,.2);margin-bottom:.75rem}
+.cred-role{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#c4b5fd;margin-bottom:.5rem}
+.cred-row{display:flex;justify-content:space-between;font-size:.8rem;margin-top:.35rem}
+.cred-k{color:var(--tm)}
+.cred-v{font-family:var(--mono)}
+.sys-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.8rem}
+.sys-row:last-child{border-bottom:none}
+.sys-k{color:var(--tm)}
+
+/* ── Metrics ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:0}
+.mc{padding:1.3rem 1.5rem;border-radius:14px;background:var(--card);border:1px solid var(--border);backdrop-filter:blur(8px);transition:transform .2s,border-color .2s}
+.mc:hover{transform:translateY(-2px);border-color:var(--border-b)}
+.mc-lbl{font-size:.66rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tm);margin-bottom:.5rem}
+.mc-val{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.mc-val.g{background:linear-gradient(90deg,var(--g1),var(--g3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.mc-val.ok{color:var(--ok)}
+.mc-val.inf{color:var(--info)}
+.mc-val.w{color:var(--warn)}
+
+/* ── Divider ── */
+hr{border:none;border-top:1px solid var(--border);margin:1.6rem 0}
+
+/* ── Footer ── */
+footer{
+  text-align:center;padding:1.4rem 2.5rem;
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(12px);background:rgba(6,7,26,.55);
+  font-size:.76rem;color:var(--tm);
+}
+footer strong{color:var(--ts)}
+.footer-chips{display:flex;justify-content:center;gap:.75rem;margin-top:.5rem;flex-wrap:wrap}
+.fc{padding:.18rem .7rem;border-radius:100px;font-size:.64rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1px solid var(--border);color:var(--tm)}
+
+/* ── Toast ── */
+.toast-stack{position:fixed;bottom:1.8rem;right:1.8rem;z-index:999;display:flex;flex-direction:column;gap:.45rem}
+.toast{padding:.8rem 1.2rem;border-radius:12px;font-size:.79rem;font-weight:500;backdrop-filter:blur(16px);max-width:310px;animation:tin .28s ease}
+@keyframes tin{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.toast.ok  {background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.3);color:#6ee7b7}
+.toast.err {background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.3);color:#fca5a5}
+.toast.info{background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.3);color:#67e8f9}
+
+/* ── Responsive ── */
+@media(max-width:960px){
+  .metrics,.info-row{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .hero{padding:1.8rem 1.2rem}
+  .hero-title{font-size:1.5rem}
+  main{padding:1.4rem}
+  .metrics,.info-row{grid-template-columns:1fr 1fr}
+  .navbar{gap:.3rem}
+  .nav-tab{padding:.5rem 1rem;font-size:.78rem}
+  .topbar{padding:0 1.2rem}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ════════════════════════════════════
+     TOP BAR — API_BASE + live clock
+════════════════════════════════════ -->
+<div class="topbar">
+  <span>API: <span id="apiUrl" style="color:var(--ts)">http://localhost:8001</span></span>
+  <div class="api-pill"><div class="api-dot"></div>API Ready</div>
+  <span id="clock">--:--:--</span>
+</div>
+
+<!-- ════════════════════════════════════
+     HERO  — mirrors st.markdown .hero
+════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge">📋 Compliance Suite · v1.0</div>
+      <h1 class="hero-title">🧠 Suspicious Activity Report Platform</h1>
+      <p class="hero-sub">AI-Powered Financial Compliance Automation System</p>
+    </div>
+    <div>
+      <div class="hero-chips">
+        <span class="chip ok">● System Ready</span>
+        <span class="chip info">SQLite · 4 Tables</span>
+        <span class="chip warn">2 Users</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     NAVBAR — mirrors st.tabs (centered)
+════════════════════════════════════ -->
+<nav class="navbar">
+  <button class="nav-tab active" onclick="switchTab('create',this)">
+    <span class="ni">📂</span> Create Case
+  </button>
+  <button class="nav-tab" onclick="switchTab('generate',this)">
+    <span class="ni">🤖</span> Generate SAR
+  </button>
+  <button class="nav-tab" onclick="switchTab('audit',this)">
+    <span class="ni">📊</span> View Audit Trail
+  </button>
+  <button class="nav-tab" onclick="switchTab('settings',this)">
+    <span class="ni">⚙️</span> Settings
+  </button>
+</nav>
+
+<main>
+
+<!-- ════════════════════════════
+     TAB 1 · CREATE CASE (tab1)
+════════════════════════════ -->
+<div class="page active" id="page-create">
+
+  <div class="ph">
+    <div class="ph-title">📝 Create Suspicious Activity Case</div>
+    <div class="ph-sub">Load a sample case from <span class="mn">sample_data/*.json</span>, review details, and submit to the backend</div>
+  </div>
+
+  <!-- st.selectbox -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <label class="field-lbl">📂 Select Sample Case</label>
+    <select id="caseSelect" onchange="loadCase(this.value)">
+      <option value="">-- Choose a case --</option>
+      <option value="c1">case_001_high_value_transfers.json</option>
+      <option value="c2">case_002_structuring_pattern.json</option>
+      <option value="c3">case_003_unusual_cash_deposits.json</option>
+      <option value="c4">case_004_rapid_movement.json</option>
+    </select>
+  </div>
+
+  <!-- shown after case selected -->
+  <div id="caseBody" style="display:none">
+
+    <!-- st.markdown("### Case Details") -->
+    <div class="ph" style="margin-bottom:1rem">
+      <div class="ph-title" style="font-size:1.1rem">Case Details</div>
+    </div>
+
+    <!-- col1 col2 col3 — st.markdown card -->
+    <div class="info-row">
+      <div class="ic"><div class="ic-lbl">📌 Case ID</div>   <div class="ic-val" id="d-caseId">—</div></div>
+      <div class="ic"><div class="ic-lbl">👤 Customer</div>  <div class="ic-val" id="d-custName">—</div></div>
+      <div class="ic"><div class="ic-lbl">🔢 Customer ID</div><div class="ic-val" id="d-custId">—</div></div>
+    </div>
+
+    <!-- st.subheader("Alerts") + st.dataframe(alerts_df) -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-lbl">⚠️ Alerts</div>
+      <div class="tbl">
+        <table>
+          <thead><tr>
+            <th>Alert ID</th><th>Type</th><th>Severity</th><th>Date</th><th>Amount</th>
+          </tr></thead>
+          <tbody id="alertsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- st.subheader("Transactions") + st.dataframe(trans_df) -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-lbl">💰 Transactions</div>
+      <div class="tbl">
+        <table>
+          <thead><tr>
+            <th>Tx ID</th><th>Date</th><th>Type</th><th>Amount (₹)</th><th>Account</th>
+          </tr></thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- st.button("Create Case") -->
+    <div class="btn-row">
+      <button class="btn btn-p" onclick="createCase()">✅ Create Case</button>
+      <button class="btn btn-g" onclick="clearCase()">🔄 Clear</button>
+    </div>
+    <div id="createResult" style="margin-top:1rem"></div>
+
+  </div>
+
+  <!-- empty state -->
+  <div id="caseEmpty">
+    <div class="alert info">
+      <span class="ai">ℹ️</span>
+      <span class="at">Select a case from the dropdown above to get started</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════
+     TAB 2 · GENERATE SAR (tab2)
+════════════════════════════ -->
+<div class="page" id="page-generate">
+
+  <div class="ph">
+    <div class="ph-title">🤖 Generate SAR Narrative</div>
+    <div class="ph-sub">AI analyses the active case and produces a compliance-ready SAR draft</div>
+  </div>
+
+  <!-- if not st.session_state.current_case: st.warning(...) -->
+  <div id="sarGuard" style="display:none">
+    <div class="alert warn">
+      <span class="ai">⚠️</span>
+      <span class="at">Create a case first — go to the <strong>Create Case</strong> tab</span>
+    </div>
+  </div>
+
+  <div id="sarMain">
+
+    <!-- case context + st.button("Generate SAR Draft") -->
+    <div class="card" style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-size:.67rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tm);margin-bottom:.25rem">Active Case</div>
+        <div class="mn" style="font-size:1rem;font-weight:700" id="sar-caseId">CASE-2024-001</div>
+        <div style="font-size:.8rem;color:var(--ts);margin-top:.15rem">Customer: <strong id="sar-custName">—</strong></div>
+      </div>
+      <button class="btn btn-p" onclick="generateSAR()">🚀 Generate SAR Draft</button>
+    </div>
+
+    <!-- inner tabs -->
+    <div id="sarTabs" style="display:none">
+
+      <div class="itabs">
+        <button class="itab active" data-idx="0">📄 Draft</button>
+        <button class="itab"        data-idx="1">🔍 Analysis</button>
+        <button class="itab"        data-idx="2">📊 Audit Trail</button>
+        <button class="itab"        data-idx="3">⬇️ Export</button>
+      </div>
+
+      <!-- DRAFT — st.text_area + col1 col2 buttons -->
+      <div class="ipanel active" id="ip-0">
+        <div class="card-lbl" style="margin-bottom:.75rem">SAR Narrative (Editable)</div>
+        <textarea id="sarText" rows="16">This Suspicious Activity Report concerns account holder Rajesh Kumar Sharma (Customer ID: CUST-2024-5519). Between March 12, 2024 and April 8, 2024, the account exhibited a pattern of high-value transfers inconsistent with the customer's stated income profile and prior transaction history.
+
+Key observations:
+1. A series of rapid inward remittances totalling ₹47,85,000 were received from multiple third-party accounts across 3 different states.
+2. Within 24–48 hours of each credit, the funds were transferred outward to a single beneficiary account at an unrelated financial institution.
+3. No apparent business justification was provided by the customer upon inquiry.
+4. The transaction pattern is consistent with layering techniques used in money laundering schemes.
+
+Based on analysis of associated alerts (ALERT-7821, ALERT-7842, ALERT-7869) and the transaction timeline, this activity is assessed as High Risk. The matter is being escalated to the compliance team for further investigation and regulatory reporting under PMLA 2002.</textarea>
+        <!-- col1 Save / col2 Reset -->
+        <div class="btn-row">
+          <button class="btn btn-ok" onclick="saveDraft()">💾 Save Draft</button>
+          <button class="btn btn-g"  onclick="resetDraft()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- ANALYSIS -->
+      <div class="ipanel" id="ip-1">
+        <div class="g2" style="margin-bottom:1.5rem">
+          <div class="card">
+            <div class="card-lbl">🎯 Generated Reasoning</div>
+            <div class="sys-row"><span class="sys-k">Pattern</span><span class="mn">Layering / Structuring</span></div>
+            <div class="sys-row"><span class="sys-k">Risk Score</span><span style="font-family:var(--mono);color:var(--err);font-weight:700">87 / 100</span></div>
+            <div class="sys-row"><span class="sys-k">Alerts Triggered</span><span class="mn">3</span></div>
+            <div class="sys-row"><span class="sys-k">AI Model</span><span class="mn">Claude-3-SAR-v2</span></div>
+            <div class="sys-row"><span class="sys-k">Confidence</span><span style="font-family:var(--mono);color:var(--ok)">94.2%</span></div>
+            <div class="sys-row"><span class="sys-k">Regulation</span><span class="mn">PMLA 2002</span></div>
+          </div>
+          <div class="card">
+            <div class="card-lbl">⚡ Risk Indicators</div>
+            <div style="display:flex;flex-direction:column;gap:.85rem">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;font-size:.79rem;font-weight:600">
+                  <span>Rapid Fund Movement</span><span class="badge bh">High · 92</span>
+                </div>
+                <div class="prog"><div class="prog-b" style="width:92%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;font-size:.79rem;font-weight:600">
+                  <span>Multiple Source Accounts</span><span class="badge bh">High · 85</span>
+                </div>
+                <div class="prog"><div class="prog-b" style="width:85%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;font-size:.79rem;font-weight:600">
+                  <span>Profile Mismatch</span><span class="badge bm">Medium · 63</span>
+                </div>
+                <div class="prog"><div class="prog-b" style="width:63%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;font-size:.79rem;font-weight:600">
+                  <span>Cross-State Transfers</span><span class="badge bm">Medium · 58</span>
+                </div>
+                <div class="prog"><div class="prog-b" style="width:58%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert info">
+          <span class="ai">💡</span>
+          <span class="at">Pattern matching completed. Transaction timeline confirms suspicious layering activity across the 4-week observation window.</span>
+        </div>
+      </div>
+
+      <!-- AUDIT TRAIL (SAR-level) -->
+      <div class="ipanel" id="ip-2">
+        <div class="g2" style="margin-bottom:1.5rem">
+          <div>
+            <div style="font-size:.67rem;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem">SAR ID</div>
+            <div class="mn" style="font-size:.9rem;font-weight:700">SAR-2024-00142</div>
+          </div>
+          <div>
+            <div style="font-size:.67rem;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem">Created At</div>
+            <div class="mn" style="font-size:.88rem">2024-04-10 14:32:07 IST</div>
+          </div>
+          <div>
+            <div style="font-size:.67rem;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem">Version</div>
+            <div class="mn" style="font-size:.88rem">v1.2</div>
+          </div>
+          <div>
+            <div style="font-size:.67rem;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem">Status</div>
+            <span class="badge bp">Draft</span>
+          </div>
+        </div>
+        <hr>
+        <div class="card-lbl" style="margin-bottom:1rem">Tracked Changes</div>
+        <div class="tl">
+          <div class="tl-row">
+            <div class="tl-dot dp"></div>
+            <div class="tl-ts">2024-04-10 14:32:07</div>
+            <div>
+              <div class="tl-act">SAR Draft Generated</div>
+              <div class="tl-det">AI model created initial narrative from CASE-2024-001</div>
+              <div class="tl-usr">system · ai-engine</div>
+            </div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-dot dc"></div>
+            <div class="tl-ts">2024-04-10 15:04:22</div>
+            <div>
+              <div class="tl-act">Narrative Edited</div>
+              <div class="tl-det">Transaction totals revised to ₹47,85,000 — version bumped to v1.1</div>
+              <div class="tl-usr">analyst · USR-0042</div>
+            </div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-dot dg"></div>
+            <div class="tl-ts">2024-04-10 15:18:45</div>
+            <div>
+              <div class="tl-act">Draft Saved</div>
+              <div class="tl-det">Version v1.2 committed to audit log</div>
+              <div class="tl-usr">analyst · USR-0042</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert info" style="margin-top:1.2rem">
+          <span class="ai">ℹ️</span>
+          <span class="at">Full audit trail with timestamps and user tracking is maintained in the backend database.</span>
+        </div>
+      </div>
+
+      <!-- EXPORT — col1 PDF / col2 JSON mirrors st.button + st.download_button -->
+      <div class="ipanel" id="ip-3">
+        <div class="card-lbl" style="margin-bottom:1.2rem">Export Options</div>
+        <div class="g2">
+          <div class="card" style="text-align:center">
+            <div style="font-size:2.3rem;margin-bottom:.7rem">📥</div>
+            <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem">Export as PDF</div>
+            <div style="font-size:.74rem;color:var(--tm);margin-bottom:1.2rem;line-height:1.5">Compliance-ready PDF via <span class="mn">GET /sars/export/{sar_id}</span></div>
+            <button class="btn btn-p" onclick="exportPDF()" style="width:100%;justify-content:center">⬇️ Download PDF</button>
+          </div>
+          <div class="card" style="text-align:center">
+            <div style="font-size:2.3rem;margin-bottom:.7rem">📋</div>
+            <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem">Export as JSON</div>
+            <div style="font-size:.74rem;color:var(--tm);margin-bottom:1.2rem;line-height:1.5">Full SAR object via <span class="mn">json.dumps(sar_data)</span></div>
+            <button class="btn btn-g" onclick="exportJSON()" style="width:100%;justify-content:center">⬇️ Download JSON</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sarTabs -->
+  </div><!-- /sarMain -->
+
+</div><!-- /page-generate -->
+
+
+<!-- ════════════════════════════
+     TAB 3 · AUDIT TRAIL (tab3)
+     GET /audit/case/{case_id}
+════════════════════════════ -->
+<div class="page" id="page-audit">
+
+  <div class="ph">
+    <div class="ph-title">📊 Audit Trail</div>
+    <div class="ph-sub">Fetched from <span class="mn">GET /audit/case/{case_id}</span> — full chronological action log</div>
+  </div>
+
+  <!-- if not st.session_state.current_case: st.warning -->
+  <div id="auditGuard" style="display:none">
+    <div class="alert warn">
+      <span class="ai">⚠️</span>
+      <span class="at">Create a case first to populate the audit log</span>
+    </div>
+  </div>
+
+  <div id="auditMain">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <div>
+        <span style="font-size:.78rem;color:var(--tm)">Audit Records for Case:</span>
+        <span class="mn" style="font-weight:700" id="audit-caseId"> CASE-2024-001</span>
+      </div>
+      <button class="btn btn-g" onclick="refreshAudit()">🔄 Refresh Audit</button>
+    </div>
+
+    <!-- st.dataframe(pd.DataFrame(audits)) -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-lbl">📂 Audit Log</div>
+      <div class="tbl">
+        <table>
+          <thead><tr>
+            <th>Timestamp</th><th>Action</th><th>Entity</th><th>User</th><th>Details</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td class="mn">2024-04-09 09:10:05</td>
+              <td>Case Ingested</td><td class="mn">CASE-2024-001</td><td class="mn">admin</td>
+              <td style="color:var(--ts)">Loaded from case_001.json</td>
+              <td><span class="badge bl">Success</span></td>
+            </tr>
+            <tr>
+              <td class="mn">2024-04-10 14:32:07</td>
+              <td>SAR Generated</td><td class="mn">SAR-2024-00142</td><td class="mn">system</td>
+              <td style="color:var(--ts)">AI model created draft v1.0</td>
+              <td><span class="badge bl">Success</span></td>
+            </tr>
+            <tr>
+              <td class="mn">2024-04-10 15:04:22</td>
+              <td>Narrative Edited</td><td class="mn">SAR-2024-00142</td><td class="mn">analyst</td>
+              <td style="color:var(--ts)">Transaction total updated — v1.1</td>
+              <td><span class="badge bl">Success</span></td>
+            </tr>
+            <tr>
+              <td class="mn">2024-04-10 15:18:45</td>
+              <td>Draft Saved</td><td class="mn">SAR-2024-00142</td><td class="mn">analyst</td>
+              <td style="color:var(--ts)">Version v1.2 committed</td>
+              <td><span class="badge bl">Success</span></td>
+            </tr>
+            <tr>
+              <td class="mn">2024-04-10 16:02:11</td>
+              <td>Export Requested</td><td class="mn">SAR-2024-00142</td><td class="mn">analyst</td>
+              <td style="color:var(--ts)">PDF export triggered</td>
+              <td><span class="badge bp">Pending</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- st.info -->
+    <div class="alert info">
+      <span class="ai">ℹ️</span>
+      <span class="at">Live entries are populated via <strong>POST /sars/generate</strong>. Generate a SAR to see real-time backend entries.</span>
+    </div>
+
+  </div>
+
+</div><!-- /page-audit -->
+
+
+<!-- ════════════════════════════
+     TAB 4 · SETTINGS (tab4)
+════════════════════════════ -->
+<div class="page" id="page-settings">
+
+  <div class="ph">
+    <div class="ph-title">⚙️ Settings</div>
+    <div class="ph-sub">Backend configuration, API health, and demo credentials</div>
+  </div>
+
+  <!-- col1 col2 -->
+  <div class="g2" style="margin-bottom:1.5rem">
+
+    <!-- col1 — st.markdown API_BASE + st.button "Test API" -->
+    <div class="card">
+      <div class="card-lbl">🔧 Backend Configuration</div>
+      <!-- st.markdown(f"**API URL:** `{API_BASE}`") -->
+      <label class="field-lbl">API Base URL</label>
+      <input type="text" id="apiBaseInput" value="http://localhost:8001" readonly style="margin-bottom:1rem">
+      <button class="btn btn-p" onclick="testAPI()" style="width:100%;justify-content:center">🧪 Test API Connection</button>
+      <div id="apiTestResult" style="margin-top:1rem;display:none">
+        <div class="alert ok">
+          <span class="ai">✅</span>
+          <span class="at">API Connected — <span class="mn" style="font-size:.74rem">GET / → 200 OK</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- col2 — st.markdown demo credentials -->
+    <div class="card">
+      <div class="card-lbl">🔐 Demo Credentials</div>
+      <div class="cred-block">
+        <div class="cred-role">Admin</div>
+        <div class="cred-row"><span class="cred-k">Username</span><span class="cred-v">admin</span></div>
+        <div class="cred-row"><span class="cred-k">Password</span><span class="cred-v">adminpass</span></div>
+      </div>
+      <div class="cred-block">
+        <div class="cred-role">Analyst</div>
+        <div class="cred-row"><span class="cred-k">Username</span><span class="cred-v">analyst</span></div>
+        <div class="cred-row"><span class="cred-k">Password</span><span class="cred-v">password</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Database Status -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <div class="card-lbl">💾 Database Status</div>
+    <div class="metrics">
+      <div class="mc"><div class="mc-lbl">Status</div><div class="mc-val ok">✅ Ready</div></div>
+      <div class="mc"><div class="mc-lbl">Tables</div><div class="mc-val g">4</div></div>
+      <div class="mc"><div class="mc-lbl">Schema</div><div class="mc-val inf">Latest</div></div>
+      <div class="mc"><div class="mc-lbl">Engine</div><div class="mc-val w">SQLite</div></div>
+    </div>
+  </div>
+
+  <!-- Platform Features -->
+  <div class="card">
+    <div class="card-lbl">🌟 Platform Features</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+      <span class="chip ok">✅ Case ingestion from alerts</span>
+      <span class="chip ok">✅ AI-powered SAR generation</span>
+      <span class="chip ok">✅ Complete audit trail logging</span>
+      <span class="chip ok">✅ Version control &amp; comparison</span>
+      <span class="chip ok">✅ Role-based access control</span>
+      <span class="chip ok">✅ PDF and JSON export</span>
+      <span class="chip ok">✅ Transaction timeline visualization</span>
+      <span class="chip ok">✅ Explainable AI recommendations</span>
+    </div>
+  </div>
+
+</div><!-- /page-settings -->
+
+</main>
+
+<!-- ════════════════════════
+     FOOTER — mirrors st.markdown footer
+════════════════════════ -->
+<footer>
+  <hr style="margin-bottom:1rem">
+  <strong>SAR AI Platform v1.0</strong><br>
+  Intelligent Suspicious Activity Report Generation System
+  <div class="footer-chips">
+    <span class="fc">🔒 Secure</span>
+    <span class="fc">📊 Compliant</span>
+    <span class="fc">⚡ Intelligent</span>
+    <span class="fc">PMLA 2002</span>
+  </div>
+</footer>
+
+</div><!-- /shell -->
+
+<div class="toast-stack" id="toasts"></div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT — mirrors session_state + API calls
+════════════════════════════════════════════ -->
+<script>
+/* ── session state (mirrors st.session_state) ── */
+const SS = {
+  current_case: null,   // st.session_state.current_case
+  current_sar:  null,   // st.session_state.current_sar
+  sar_draft:    '',     // st.session_state.sar_draft
+  api_base: 'http://localhost:8001'  // API_BASE
+};
+
+/* ── clock ── */
+function tick(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-IN',{hour12:false});
+}
+tick(); setInterval(tick,1000);
+
+/* ── page tab switching ── */
+function switchTab(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+
+  /* session state guards — mirrors Streamlit if not st.session_state.current_case */
+  if(id==='generate'){
+    const hasCurrent = !!SS.current_case;
+    document.getElementById('sarGuard').style.display  = hasCurrent ? 'none' : 'block';
+    document.getElementById('sarMain').style.display   = hasCurrent ? 'block' : 'none';
+    if(hasCurrent){
+      document.getElementById('sar-caseId').textContent   = SS.current_case.case_id;
+      document.getElementById('sar-custName').textContent = SS.current_case.customer_name;
+    }
+  }
+  if(id==='audit'){
+    const hasCurrent = !!SS.current_case;
+    document.getElementById('auditGuard').style.display = hasCurrent ? 'none' : 'block';
+    document.getElementById('auditMain').style.display  = hasCurrent ? 'block' : 'none';
+    if(hasCurrent)
+      document.getElementById('audit-caseId').textContent = ' '+SS.current_case.case_id;
+  }
+}
+
+/* ── inner SAR tabs ── */
+document.querySelectorAll('.itab').forEach((btn,i)=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.itab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.ipanel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('ip-'+i).classList.add('active');
+  });
+});
+
+/* ── mock sample_data/*.json ── */
+const CASES = {
+  c1:{
+    case_id:'CASE-2024-001',customer_name:'Rajesh Kumar Sharma',customer_id:'CUST-2024-5519',
+    alerts:[
+      {alert_id:'ALERT-7821',type:'Rapid Transfers',  severity:'High',  date:'2024-03-14',amount:'₹12,50,000'},
+      {alert_id:'ALERT-7842',type:'Multiple Sources', severity:'High',  date:'2024-03-22',amount:'₹18,75,000'},
+      {alert_id:'ALERT-7869',type:'Profile Mismatch', severity:'Medium',date:'2024-04-02',amount:'₹16,60,000'},
+    ],
+    transactions:[
+      {tx_id:'TXN-00481',date:'2024-03-12',type:'Inward Remittance',amount:'₹12,50,000',account:'XXXX-1923'},
+      {tx_id:'TXN-00493',date:'2024-03-13',type:'Outward Transfer', amount:'₹12,45,000',account:'XXXX-8844'},
+      {tx_id:'TXN-00512',date:'2024-03-22',type:'Inward Remittance',amount:'₹18,75,000',account:'XXXX-3311'},
+      {tx_id:'TXN-00525',date:'2024-03-24',type:'Outward Transfer', amount:'₹18,70,000',account:'XXXX-8844'},
+    ]
+  },
+  c2:{
+    case_id:'CASE-2024-002',customer_name:'Priya Nair',customer_id:'CUST-2024-6241',
+    alerts:[
+      {alert_id:'ALERT-8011',type:'Structuring',severity:'High',date:'2024-03-05',amount:'₹9,95,000'},
+      {alert_id:'ALERT-8024',type:'Structuring',severity:'High',date:'2024-03-07',amount:'₹9,90,000'},
+    ],
+    transactions:[
+      {tx_id:'TXN-00601',date:'2024-03-05',type:'Cash Deposit',amount:'₹4,98,000',account:'XXXX-4410'},
+      {tx_id:'TXN-00602',date:'2024-03-05',type:'Cash Deposit',amount:'₹4,97,000',account:'XXXX-4410'},
+    ]
+  },
+  c3:{
+    case_id:'CASE-2024-003',customer_name:'Anil Mehta',customer_id:'CUST-2024-7788',
+    alerts:[
+      {alert_id:'ALERT-8250',type:'Unusual Cash Deposit',severity:'Medium',date:'2024-02-14',amount:'₹7,20,000'},
+    ],
+    transactions:[
+      {tx_id:'TXN-00721',date:'2024-02-14',type:'Cash Deposit',amount:'₹7,20,000',account:'XXXX-9090'},
+    ]
+  },
+  c4:{
+    case_id:'CASE-2024-004',customer_name:'Sunita Gupta',customer_id:'CUST-2024-9901',
+    alerts:[
+      {alert_id:'ALERT-9001',type:'Rapid Movement',severity:'High',date:'2024-04-01',amount:'₹32,00,000'},
+      {alert_id:'ALERT-9012',type:'Cross-Border',  severity:'High',date:'2024-04-03',amount:'₹28,50,000'},
+    ],
+    transactions:[
+      {tx_id:'TXN-00901',date:'2024-04-01',type:'Wire Transfer',amount:'₹32,00,000',account:'XXXX-1122'},
+      {tx_id:'TXN-00904',date:'2024-04-03',type:'Wire Transfer',amount:'₹28,50,000',account:'XXXX-3344'},
+    ]
+  }
+};
+
+/* mirrors: case_data = json.loads(case_file.read_text()) */
+function loadCase(val){
+  const data = CASES[val];
+  document.getElementById('caseEmpty').style.display = data ? 'none':'block';
+  document.getElementById('caseBody').style.display  = data ? 'block':'none';
+  if(!data) return;
+
+  SS.current_case = data; // st.session_state.current_case = case_data
+
+  document.getElementById('d-caseId').textContent   = data.case_id;
+  document.getElementById('d-custName').textContent = data.customer_name;
+  document.getElementById('d-custId').textContent   = data.customer_id;
+
+  /* alerts_df */
+  document.getElementById('alertsBody').innerHTML = data.alerts.map(a=>`
+    <tr>
+      <td class="mn">${a.alert_id}</td><td>${a.type}</td>
+      <td><span class="badge ${a.severity==='High'?'bh':'bm'}">${a.severity}</span></td>
+      <td class="mn">${a.date}</td><td>${a.amount}</td>
+    </tr>`).join('');
+
+  /* trans_df — amount formatted ₹x:,.0f mirrors Python lambda */
+  document.getElementById('txBody').innerHTML = data.transactions.map(t=>`
+    <tr>
+      <td class="mn">${t.tx_id}</td><td class="mn">${t.date}</td>
+      <td>${t.type}</td><td>${t.amount}</td><td class="mn">${t.account}</td>
+    </tr>`).join('');
+}
+
+/* mirrors: requests.post(f"{API_BASE}/cases/create", json=case_data) */
+function createCase(){
+  if(!SS.current_case){ toast('Select a case first','err'); return; }
+  setTimeout(()=>{
+    toast('✅ Case created successfully!','ok');
+    launchConfetti(); // st.balloons()
+    document.getElementById('createResult').innerHTML=`
+      <div class="alert ok">
+        <span class="ai">✅</span>
+        <span class="at">Case <strong>${SS.current_case.case_id}</strong> created — POST ${SS.api_base}/cases/create → 200 OK</span>
+      </div>`;
+  },400);
+}
+
+function clearCase(){
+  SS.current_case = null;
+  document.getElementById('caseSelect').value='';
+  document.getElementById('caseBody').style.display='none';
+  document.getElementById('caseEmpty').style.display='block';
+  document.getElementById('createResult').innerHTML='';
+}
+
+/* mirrors: requests.post(f"{API_BASE}/sars/generate", params={'case_id': case_id}) */
+function generateSAR(){
+  toast('🤖 Calling POST /sars/generate…','info');
+  setTimeout(()=>{
+    SS.current_sar  = {sar_id:'SAR-2024-00142',version:'v1.2',status:'Draft'};
+    SS.sar_draft    = document.getElementById('sarText').value;
+    // st.session_state.sar_draft = sar_data.get("sar_draft","")
+    document.getElementById('sarTabs').style.display='block';
+    toast('✅ SAR Draft Generated Successfully!','ok');
+  },900);
+}
+
+function saveDraft(){
+  SS.sar_draft = document.getElementById('sarText').value;
+  toast('💾 Draft saved locally','ok');
+}
+
+function resetDraft(){
+  document.getElementById('sarText').value = SS.sar_draft;
+  toast('🔄 Draft reset','info');
+}
+
+/* mirrors: requests.get(f"{API_BASE}/sars/export/{sar_id}") → st.download_button */
+function exportPDF() {
+  const sarId = "SAR-2024-00142"; // dynamic if needed
+
+  fetch(`http://localhost:8001/sars/export/${sarId}`)
+    .then(response => {
+      if (!response.ok) throw new Error("Download failed");
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `SAR_${sarId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    })
+    .catch(err => alert(err));
+}
+
+
+/* mirrors: st.download_button("Download JSON", json.dumps(sar_data)) */
+function exportJSON(){
+  const d = {sar_id:'SAR-2024-00142',case_id:SS.current_case?.case_id||'CASE-2024-001',version:'v1.2',status:'Draft',risk_score:87,regulation:'PMLA 2002'};
+  const blob = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'SAR-2024-00142.json';
+  a.click();
+  toast('📋 JSON downloaded','ok');
+}
+
+/* mirrors: requests.get(API_BASE) → st.success / st.error */
+function testAPI(){
+  const r = document.getElementById('apiTestResult');
+  r.style.display='none';
+  setTimeout(()=>{ r.style.display='block'; toast('✅ API is responsive and healthy','ok'); },600);
+}
+
+function refreshAudit(){
+  toast('🔄 Refreshed — GET '+SS.api_base+'/audit/case/'+(SS.current_case?.case_id||'?'),'ok');
+}
+
+/* ── toast ── */
+function toast(msg,type='ok'){
+  const w = document.getElementById('toasts');
+  const d = document.createElement('div');
+  d.className=`toast ${type}`;d.textContent=msg;
+  w.appendChild(d);
+  setTimeout(()=>d.remove(),3400);
+}
+
+/* ── confetti (st.balloons equivalent) ── */
+function launchConfetti(){
+  const cols=['#a855f7','#ec4899','#22d3ee','#34d399','#fbbf24'];
+  for(let i=0;i<55;i++){
+    const el=document.createElement('div');
+    const sz=(Math.random()*8+5)+'px';
+    Object.assign(el.style,{
+      position:'fixed',left:Math.random()*100+'vw',top:'-20px',
+      width:sz,height:sz,
+      borderRadius:Math.random()>.5?'50%':'2px',
+      background:cols[Math.floor(Math.random()*cols.length)],
+      zIndex:9999,pointerEvents:'none',
+      animation:`fall ${1.2+Math.random()*1.5}s ease-in forwards`,
+      animationDelay:Math.random()*.8+'s',
+      opacity:.4+Math.random()*.6,
+    });
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3000);
+  }
+  if(!document.getElementById('_fkf')){
+    const s=document.createElement('style');
+    s.id='_fkf';
+    s.textContent='@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}';
+    document.head.appendChild(s);
+  }
+}
+</script>
+</body>
+</html>

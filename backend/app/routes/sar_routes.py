@@ -33,7 +33,13 @@ def export_sar(sar_id: str):
         raise HTTPException(status_code=404, detail='sar not found')
     case = storage.get_case(sar.get('case_id'))
     pdf = exporter.sar_to_pdf_bytes(sar.get('draft') or '', case)
-    return StreamingResponse(iter([pdf]), media_type='application/pdf', headers={"Content-Disposition": f"attachment; filename={sar_id}.pdf"})
+    return StreamingResponse(
+        BytesIO(pdf),
+    media_type="application/pdf",
+    headers={
+        "Content-Disposition": f'attachment; filename="{sar_id}.pdf"'
+    }
+)
 
 
 @router.get('/versions/{case_id}')

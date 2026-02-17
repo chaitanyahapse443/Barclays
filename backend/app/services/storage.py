@@ -3,7 +3,8 @@ import json
 import os
 from datetime import datetime
 
-DB_FILE = os.path.join(os.path.dirname(__file__), '..', 'sar_ai.db')
+DB_FILE = r"C:\barcklays_hackathon\Barclays\backend\sar_ai.db"
+
 DB_FILE = os.path.normpath(DB_FILE)
 
 def _conn():
